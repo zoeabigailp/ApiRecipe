@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -39,7 +40,7 @@ public class RecipeController {
         return ResponseEntity.status(HttpStatus.OK).body(recipeService.ModifyRecipe(id, recipeDTO));
     }
 
-    @GetMapping("search/{category}")
+    @GetMapping("/search/{category}")
     public List<RecipeDTO> SearchRecipe(@PathVariable String category){
         return recipeService.SearchRecipe(category);
     }
@@ -47,5 +48,15 @@ public class RecipeController {
     @GetMapping("/category")
     public List<String> AllCategory(){
         return recipeService.AllCategory();
+    }
+
+    @DeleteMapping("/delete")
+    public Map<String, Object> DeleteRecipe (@RequestParam("id") long id){
+        return recipeService.DeleteRecipe(id);
+    }
+
+    @GetMapping("/filter")
+    public List<RecipeDTO> FilterByDuration(@RequestParam(value = "max", required = false) Integer max, @RequestParam("min") Integer min){
+        return recipeService.FilterByDuration(max,min);
     }
 }

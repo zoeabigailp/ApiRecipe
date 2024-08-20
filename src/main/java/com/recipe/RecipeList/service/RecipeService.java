@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -19,7 +21,7 @@ public class RecipeService {
     private  RecipeRepository recipeRepository;
 
 
-    public RecipeDTO CreateRecipe(RecipeDTO recipe) throws RecipeDataIntegrityException, NullPointerException, NumberFormatException {
+    public RecipeDTO CreateRecipe(RecipeDTO recipe) throws RecipeDataIntegrityException, NullPointerException {
         RecipeModel recipeModel = RecipeMapper.DtoToModel(recipe);
 
         try {
@@ -37,12 +39,15 @@ public class RecipeService {
     }
 
     public RecipeDTO IdRecipe(long id) throws NullPointerException, NumberFormatException{
-        if(!recipeRepository.existsById(id)) throw new NullPointerException("Not found");
-        return RecipeMapper.ModelToDto(recipeRepository.findById(id).orElseThrow());
+        return RecipeMapper.ModelToDto(recipeRepository.findById(id).orElseThrow(
+                ()->  new NullPointerException("Not found")
+        ));
     }
 
     public RecipeDTO ModifyRecipe (long id, RecipeDTO recipeDTO) throws NullPointerException, NumberFormatException{
-        RecipeModel recipeModelGet = recipeRepository.findById(id).orElseThrow();
+        RecipeModel recipeModelGet = recipeRepository.findById(id).orElseThrow(
+                () -> new NullPointerException("Not found")
+        );
 
         recipeModelGet.setTitle(recipeDTO.getTitle());
         recipeModelGet.setDescription(recipeDTO.getDescription());
@@ -58,5 +63,20 @@ public class RecipeService {
 
     public List<String> AllCategory(){
         return recipeRepository.findDistincByCategory();
+    }
+
+    public Map<String, Object> DeleteRecipe(long id){
+        Map<String, Object> messenge = new HashMap<>();
+        messenge.put("Messenge", "Delete recipe");
+        recipeRepository.deleteById(id);
+        return messenge;
+    }
+
+    public List<RecipeDTO> FilterByDuration(Integer max, Integer min){
+        if(max==null){
+            return RecipeMapper.ModelToDtoList(recipeRepository.filterByDurationMin(min));
+        }
+        if(max<1 && min<1) throw new NumberFormatException("Error Format");
+        return RecipeMapper.ModelToDtoList(recipeRepository.filterByDuration(max,min));
     }
 }
